@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TVM Calculator - FalconWise.finance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #002244;
+            --accent-gold: #e3b505;
+            --highlight-green: #28a745;
+            --error-red: #dc3545;
+            --soft-background: #f5f6f8;
+            --white: #ffffff;
+            --light-gray: #e9ecef;
+            --dark-gray: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--soft-background);
+            color: var(--primary-blue);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary-blue), #003366);
+            color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .author-credit {
+            font-size: 1rem;
+            color: var(--accent-gold);
+            margin-top: 10px;
+            font-weight: 500;
+            opacity: 0.95;
+            transition: all 0.3s ease;
+        }
+
+        .author-credit:hover {
+            text-decoration: underline;
+            opacity: 1;
+        }
+
+        /* Tab Navigation */
+        .tab-container {
+            margin-bottom: 30px;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: var(--white);
+            color: var(--primary-blue);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--light-gray);
+        }
+
+        .tab-btn.active {
+            background: var(--primary-blue);
+            color: var(--white);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: var(--white);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-explainer {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .tab-explainer h3 {
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .tab-explainer p {
+            color: var(--dark-gray);
+            font-size: 0.95rem;
+        }
+
+        /* Layout Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .inputs-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chart-panel {
+            background: var(--soft-background);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        /* Input Styling */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            cursor: help;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 2;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .number-input, .select-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 6px;
+            font-size: 16px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .select-input {
+            text-align: left;
+        }
+
+        .number-input:focus, .select-input:focus {
+            border-color: var(--accent-gold);
+            outline: none;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 20px;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .result-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid var(--light-gray);
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card.primary {
+            border-color: var(--accent-gold);
+            background: linear-gradient(135deg, #fff9e6, #ffffff);
+        }
+
+        .result-card.secondary {
+            border-color: var(--highlight-green);
+            background: linear-gradient(135deg, #f0fff4, #ffffff);
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* Discount Table */
+        .discount-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .discount-table th {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .discount-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .discount-table tr:nth-child(even) {
+            background: var(--soft-background);
+        }
+
+        .discount-table tr:hover {
+            background: #e8f4fd;
+        }
+
+        /* Export Buttons */
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .export-btn.png {
+            background: var(--highlight-green);
+            color: var(--white);
+        }
+
+        .export-btn.csv {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Reset Button */
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--error-red);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .tab-nav {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                font-size: 14px;
+                padding: 12px 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .input-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .slider {
+                width: 100%;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tab-content {
+                padding: 20px;
+            }
+
+            .discount-table {
+                font-size: 14px;
+            }
+
+            .discount-table th,
+            .discount-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TVM Calculator</h1>
+            <p>Interactive Time Value of Money Visualizer | FalconWise.finance</p>
+            <div class="author-credit">
+                By Mohammed Abdul Gaffar, CFA – FalconWise.finance
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="future-value">Future Value</button>
+                <button class="tab-btn" data-tab="present-value">Present Value</button>
+                <button class="tab-btn" data-tab="annuity">Annuity</button>
+                <button class="tab-btn" data-tab="perpetuity">Perpetuity</button>
+            </div>
+
+            <!-- Future Value Tab -->
+            <div class="tab-content active" id="future-value">
+                <div class="tab-explainer">
+                    <h3>Future Value (Compounding)</h3>
+                    <p>How much will your money grow over time?</p>
+                </div>
+                
+                <div class="content-grid">
+                    <div class="inputs-panel">
+                        <div class="input-group">
+                            <label class="input-label" title="The amount of money you have today">Present Value ($)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="fv-pv-slider" min="100" max="100000" step="100" value="10000">
+                                <input type="number" class="number-input" id="fv-pv-input" min="0" step="100" value="10000">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="Annual rate at which money grows">Interest Rate (%)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="fv-rate-slider" min="0.1" max="20" step="0.1" value="5">
+                                <input type="number" class="number-input" id="fv-rate-input" min="0" step="0.1" value="5">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="How many years the investment lasts">Time Period (Years)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="fv-years-slider" min="1" max="30" step="1" value="10">
+                                <input type="number" class="number-input" id="fv-years-input" min="1" step="1" value="10">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="How often interest is applied">Compounding Frequency</label>
+                            <select class="select-input" id="fv-compounding-select">
+                                <option value="1">Annual</option>
+                                <option value="2">Semi-annual</option>
+                                <option value="4">Quarterly</option>
+                                <option value="12" selected>Monthly</option>
+                                <option value="365">Daily</option>
+                            </select>
+                        </div>
+
+                        <button class="reset-btn" onclick="resetTab('future-value')">Reset to Defaults</button>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div class="chart-container">
+                            <canvas id="fv-chart"></canvas>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn png" onclick="exportChart('fv-chart')">📥 Download Chart</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="result-card primary">
+                        <div class="result-label">Future Value</div>
+                        <div class="result-value" id="fv-result">$16,289</div>
+                    </div>
+                    <div class="result-card secondary">
+                        <div class="result-label">Compound Interest</div>
+                        <div class="result-value" id="fv-interest">$6,289</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Effective Rate</div>
+                        <div class="result-value" id="fv-effective">5.12%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Present Value Tab -->
+            <div class="tab-content" id="present-value">
+                <div class="tab-explainer">
+                    <h3>Present Value (Discounting)</h3>
+                    <p>How much is a future cash flow worth today?</p>
+                </div>
+                
+                <div class="content-grid">
+                    <div class="inputs-panel">
+                        <div class="input-group">
+                            <label class="input-label" title="The target amount or expected cash flow in the future">Future Value ($)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="pv-fv-slider" min="100" max="200000" step="100" value="20000">
+                                <input type="number" class="number-input" id="pv-fv-input" min="0" step="100" value="20000">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="Annual rate at which money is discounted">Interest Rate (%)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="pv-rate-slider" min="0.1" max="20" step="0.1" value="5">
+                                <input type="number" class="number-input" id="pv-rate-input" min="0" step="0.1" value="5">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="How many years until the future cash flow">Time Period (Years)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="pv-years-slider" min="1" max="30" step="1" value="10">
+                                <input type="number" class="number-input" id="pv-years-input" min="1" step="1" value="10">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="How often interest is compounded">Compounding Frequency</label>
+                            <select class="select-input" id="pv-compounding-select">
+                                <option value="1">Annual</option>
+                                <option value="2">Semi-annual</option>
+                                <option value="4">Quarterly</option>
+                                <option value="12" selected>Monthly</option>
+                                <option value="365">Daily</option>
+                            </select>
+                        </div>
+
+                        <button class="reset-btn" onclick="resetTab('present-value')">Reset to Defaults</button>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div class="chart-container">
+                            <canvas id="pv-chart"></canvas>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn png" onclick="exportChart('pv-chart')">📥 Download Chart</button>
+                            <button class="export-btn csv" onclick="exportDiscountTable()">📄 Export Table</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="result-card primary">
+                        <div class="result-label">Present Value</div>
+                        <div class="result-value" id="pv-result">$12,278</div>
+                    </div>
+                    <div class="result-card secondary">
+                        <div class="result-label">Discount Amount</div>
+                        <div class="result-value" id="pv-discount">$7,722</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Effective Rate</div>
+                        <div class="result-value" id="pv-effective">5.12%</div>
+                    </div>
+                </div>
+
+                <table class="discount-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Discount Factor</th>
+                            <th>Present Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="discount-table-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Annuity Tab -->
+            <div class="tab-content" id="annuity">
+                <div class="tab-explainer">
+                    <h3>Annuity (Recurring Payments)</h3>
+                    <p>Value of a series of equal periodic payments over time</p>
+                </div>
+                
+                <div class="content-grid">
+                    <div class="inputs-panel">
+                        <div class="input-group">
+                            <label class="input-label" title="Regular payment amount for the annuity">Payment Amount ($)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="an-pmt-slider" min="100" max="5000" step="50" value="1000">
+                                <input type="number" class="number-input" id="an-pmt-input" min="0" step="50" value="1000">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="Annual rate of return">Interest Rate (%)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="an-rate-slider" min="0.1" max="20" step="0.1" value="5">
+                                <input type="number" class="number-input" id="an-rate-input" min="0" step="0.1" value="5">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="How many years payments will be made">Time Period (Years)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="an-years-slider" min="1" max="30" step="1" value="10">
+                                <input type="number" class="number-input" id="an-years-input" min="1" step="1" value="10">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="How often payments are made">Payment Frequency</label>
+                            <select class="select-input" id="an-frequency-select">
+                                <option value="1">Annual</option>
+                                <option value="2">Semi-annual</option>
+                                <option value="4">Quarterly</option>
+                                <option value="12" selected>Monthly</option>
+                            </select>
+                        </div>
+
+                        <button class="reset-btn" onclick="resetTab('annuity')">Reset to Defaults</button>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div class="chart-container">
+                            <canvas id="an-chart"></canvas>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn png" onclick="exportChart('an-chart')">📥 Download Chart</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="result-card primary">
+                        <div class="result-label">Present Value</div>
+                        <div class="result-value" id="an-pv-result">$94,269</div>
+                    </div>
+                    <div class="result-card secondary">
+                        <div class="result-label">Future Value</div>
+                        <div class="result-value" id="an-fv-result">$155,133</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Total Payments</div>
+                        <div class="result-value" id="an-total">$120,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Perpetuity Tab -->
+            <div class="tab-content" id="perpetuity">
+                <div class="tab-explainer">
+                    <h3>Perpetuity (Infinite Payments)</h3>
+                    <p>Present value of infinite recurring payments</p>
+                </div>
+                
+                <div class="content-grid">
+                    <div class="inputs-panel">
+                        <div class="input-group">
+                            <label class="input-label" title="Regular payment amount for the perpetuity">Payment Amount ($)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="pp-pmt-slider" min="100" max="5000" step="50" value="1000">
+                                <input type="number" class="number-input" id="pp-pmt-input" min="0" step="50" value="1000">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" title="Annual discount rate">Interest Rate (%)</label>
+                            <div class="input-row">
+                                <input type="range" class="slider" id="pp-rate-slider" min="0.1" max="20" step="0.1" value="5">
+                                <input type="number" class="number-input" id="pp-rate-input" min="0" step="0.1" value="5">
+                            </div>
+                        </div>
+
+                        <button class="reset-btn" onclick="resetTab('perpetuity')">Reset to Defaults</button>
+                    </div>
+
+                    <div class="chart-panel">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 350px; background: var(--white); border-radius: 8px;">
+                            <div style="text-align: center; color: var(--dark-gray);">
+                                <h3 style="margin-bottom: 10px;">Formula: PV = Payment ÷ Interest Rate</h3>
+                                <p>Perpetuities represent infinite payment streams</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="result-card primary">
+                        <div class="result-label">Present Value</div>
+                        <div class="result-value" id="pp-pv-result">$20,000</div>
+                    </div>
+                    <div class="result-card secondary">
+                        <div class="result-label">Annual Payment</div>
+                        <div class="result-value" id="pp-pmt-result">$1,000</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Interest Rate</div>
+                        <div class="result-value" id="pp-rate-result">5.00%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TVMCalculator {
+            constructor() {
+                this.charts = {};
+                this.activeTab = 'future-value';
+                this.initializeEventListeners();
+                this.calculateAll();
+            }
+
+            initializeEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Input synchronization for all tabs
+                this.syncInputs('fv-pv-slider', 'fv-pv-input');
+                this.syncInputs('fv-rate-slider', 'fv-rate-input');
+                this.syncInputs('fv-years-slider', 'fv-years-input');
+                
+                this.syncInputs('pv-fv-slider', 'pv-fv-input');
+                this.syncInputs('pv-rate-slider', 'pv-rate-input');
+                this.syncInputs('pv-years-slider', 'pv-years-input');
+                
+                this.syncInputs('an-pmt-slider', 'an-pmt-input');
+                this.syncInputs('an-rate-slider', 'an-rate-input');
+                this.syncInputs('an-years-slider', 'an-years-input');
+                
+                this.syncInputs('pp-pmt-slider', 'pp-pmt-input');
+                this.syncInputs('pp-rate-slider', 'pp-rate-input');
+
+                // Dropdown changes
+                document.getElementById('fv-compounding-select').addEventListener('change', () => this.calculateFutureValue());
+                document.getElementById('pv-compounding-select').addEventListener('change', () => this.calculatePresentValue());
+                document.getElementById('an-frequency-select').addEventListener('change', () => this.calculateAnnuity());
+            }
+
+            syncInputs(sliderId, inputId) {
+                const slider = document.getElementById(sliderId);
+                const input = document.getElementById(inputId);
+
+                slider.addEventListener('input', () => {
+                    input.value = slider.value;
+                    this.calculateTab(this.activeTab);
+                });
+
+                input.addEventListener('input', () => {
+                    slider.value = input.value;
+                    this.calculateTab(this.activeTab);
+                });
+            }
+
+            switchTab(tabName) {
+                // Update active tab
+                this.activeTab = tabName;
+
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabName).classList.add('active');
+
+                // Calculate for new tab
+                this.calculateTab(tabName);
+            }
+
+            calculateTab(tabName) {
+                switch(tabName) {
+                    case 'future-value':
+                        this.calculateFutureValue();
+                        break;
+                    case 'present-value':
+                        this.calculatePresentValue();
+                        break;
+                    case 'annuity':
+                        this.calculateAnnuity();
+                        break;
+                    case 'perpetuity':
+                        this.calculatePerpetuity();
+                        break;
+                }
+            }
+
+            calculateAll() {
+                this.calculateFutureValue();
+                this.calculatePresentValue();
+                this.calculateAnnuity();
+                this.calculatePerpetuity();
+            }
+
+            calculateFutureValue() {
+                const pv = parseFloat(document.getElementById('fv-pv-input').value) || 0;
+                const rate = parseFloat(document.getElementById('fv-rate-input').value) || 0;
+                const years = parseFloat(document.getElementById('fv-years-input').value) || 0;
+                const compounding = parseFloat(document.getElementById('fv-compounding-select').value) || 1;
+
+                const r = rate / 100;
+                const fv = pv * Math.pow(1 + r / compounding, compounding * years);
+                const simpleInterest = pv * (1 + r * years);
+                const effectiveRate = (Math.pow(1 + r / compounding, compounding) - 1) * 100;
+
+                document.getElementById('fv-result').textContent = `$${fv.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('fv-interest').textContent = `$${(fv - pv).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('fv-effective').textContent = `${effectiveRate.toFixed(2)}%`;
+
+                this.renderFutureValueChart(pv, rate, years, compounding);
+            }
+
+            calculatePresentValue() {
+                const fv = parseFloat(document.getElementById('pv-fv-input').value) || 0;
+                const rate = parseFloat(document.getElementById('pv-rate-input').value) || 0;
+                const years = parseFloat(document.getElementById('pv-years-input').value) || 0;
+                const compounding = parseFloat(document.getElementById('pv-compounding-select').value) || 1;
+
+                const r = rate / 100;
+                const pv = fv / Math.pow(1 + r / compounding, compounding * years);
+                const effectiveRate = (Math.pow(1 + r / compounding, compounding) - 1) * 100;
+
+                document.getElementById('pv-result').textContent = `$${pv.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('pv-discount').textContent = `$${(fv - pv).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('pv-effective').textContent = `${effectiveRate.toFixed(2)}%`;
+
+                this.renderPresentValueChart(fv, rate, years, compounding);
+                this.updateDiscountTable(fv, rate);
+            }
+
+            calculateAnnuity() {
+                const pmt = parseFloat(document.getElementById('an-pmt-input').value) || 0;
+                const rate = parseFloat(document.getElementById('an-rate-input').value) || 0;
+                const years = parseFloat(document.getElementById('an-years-input').value) || 0;
+                const frequency = parseFloat(document.getElementById('an-frequency-select').value) || 1;
+
+                const r = rate / 100 / frequency;
+                const n = years * frequency;
+                
+                const pv = pmt * (1 - Math.pow(1 + r, -n)) / r;
+                const fv = pmt * (Math.pow(1 + r, n) - 1) / r;
+                const totalPayments = pmt * n;
+
+                document.getElementById('an-pv-result').textContent = `$${pv.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('an-fv-result').textContent = `$${fv.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('an-total').textContent = `$${totalPayments.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+
+                this.renderAnnuityChart(pmt, rate, years, frequency);
+            }
+
+            calculatePerpetuity() {
+                const pmt = parseFloat(document.getElementById('pp-pmt-input').value) || 0;
+                const rate = parseFloat(document.getElementById('pp-rate-input').value) || 0;
+
+                const pv = pmt / (rate / 100);
+
+                document.getElementById('pp-pv-result').textContent = `$${pv.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('pp-pmt-result').textContent = `$${pmt.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+                document.getElementById('pp-rate-result').textContent = `${rate.toFixed(2)}%`;
+            }
+
+            renderFutureValueChart(pv, rate, years, compounding) {
+                const ctx = document.getElementById('fv-chart').getContext('2d');
+                
+                if (this.charts['fv-chart']) {
+                    this.charts['fv-chart'].destroy();
+                }
+
+                const labels = [];
+                const compoundData = [];
+                const simpleData = [];
+                
+                for (let year = 0; year <= years; year++) {
+                    labels.push(year.toString());
+                    const r = rate / 100;
+                    compoundData.push(pv * Math.pow(1 + r / compounding, compounding * year));
+                    simpleData.push(pv * (1 + r * year));
+                }
+
+                this.charts['fv-chart'] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Compound Interest',
+                            data: compoundData,
+                            borderColor: '#e3b505',
+                            backgroundColor: 'rgba(227, 181, 5, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }, {
+                            label: 'Simple Interest',
+                            data: simpleData,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            borderDash: [5, 5]
+                        }]
+                    },
+                    options: this.getChartOptions('Compound vs Simple Interest Growth', 'Years', 'Value ($)')
+                });
+            }
+
+            renderPresentValueChart(fv, rate, years, compounding) {
+                const ctx = document.getElementById('pv-chart').getContext('2d');
+                
+                if (this.charts['pv-chart']) {
+                    this.charts['pv-chart'].destroy();
+                }
+
+                const labels = [];
+                const nominalData = [];
+                const presentData = [];
+                
+                for (let year = 0; year <= years; year++) {
+                    labels.push(year.toString());
+                    const r = rate / 100;
+                    nominalData.push(fv);
+                    presentData.push(fv / Math.pow(1 + r / compounding, compounding * year));
+                }
+
+                this.charts['pv-chart'] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Nominal Future Value',
+                            data: nominalData,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            borderDash: [5, 5]
+                        }, {
+                            label: 'Present Value',
+                            data: presentData,
+                            borderColor: '#e3b505',
+                            backgroundColor: 'rgba(227, 181, 5, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: this.getChartOptions('Present Value vs Nominal Value', 'Years', 'Value ($)')
+                });
+            }
+
+            renderAnnuityChart(pmt, rate, years, frequency) {
+                const ctx = document.getElementById('an-chart').getContext('2d');
+                
+                if (this.charts['an-chart']) {
+                    this.charts['an-chart'].destroy();
+                }
+
+                const labels = [];
+                const cumulativePayments = [];
+                const cumulativeValue = [];
+                
+                const r = rate / 100 / frequency;
+                
+                for (let year = 1; year <= years; year++) {
+                    labels.push(year.toString());
+                    const totalPayments = pmt * frequency * year;
+                    const fv = pmt * (Math.pow(1 + r, frequency * year) - 1) / r;
+                    
+                    cumulativePayments.push(totalPayments);
+                    cumulativeValue.push(fv);
+                }
+
+                this.charts['an-chart'] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Cumulative Payments',
+                            data: cumulativePayments,
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: '#28a745',
+                            borderWidth: 2
+                        }, {
+                            label: 'Future Value',
+                            data: cumulativeValue,
+                            backgroundColor: 'rgba(227, 181, 5, 0.7)',
+                            borderColor: '#e3b505',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: this.getChartOptions('Annuity Growth Over Time', 'Years', 'Value ($)')
+                });
+            }
+
+            updateDiscountTable(fv, rate) {
+                const tbody = document.getElementById('discount-table-body');
+                tbody.innerHTML = '';
+                
+                const r = rate / 100;
+                
+                for (let year = 1; year <= 10; year++) {
+                    const discountFactor = 1 / Math.pow(1 + r, year);
+                    const presentValue = fv * discountFactor;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${year}</td>
+                        <td>${discountFactor.toFixed(4)}</td>
+                        <td>$${presentValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            }
+
+            getChartOptions(title, xLabel, yLabel) {
+                return {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { weight: 'bold', size: 12 },
+                                color: '#002244'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16, weight: 'bold' },
+                            color: '#002244'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xLabel,
+                                font: { weight: 'bold' },
+                                color: '#002244'
+                            },
+                            grid: { color: 'rgba(0, 34, 68, 0.1)' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: yLabel,
+                                font: { weight: 'bold' },
+                                color: '#002244'
+                            },
+                            grid: { color: 'rgba(0, 34, 68, 0.1)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    elements: {
+                        point: { radius: 3, hoverRadius: 6 }
+                    }
+                };
+            }
+        }
+
+        // Export functions
+        function exportChart(chartId) {
+            const canvas = document.getElementById(chartId);
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `TVM_Chart_${chartId}_${new Date().toISOString().split('T')[0]}.png`;
+            link.href = url;
+            link.click();
+        }
+
+        function exportDiscountTable() {
+            const fv = parseFloat(document.getElementById('pv-fv-input').value) || 0;
+            const rate = parseFloat(document.getElementById('pv-rate-input').value) || 0;
+            const r = rate / 100;
+            
+            let csvContent = "Year,Discount Factor,Present Value\n";
+            
+            for (let year = 1; year <= 10; year++) {
+                const discountFactor = 1 / Math.pow(1 + r, year);
+                const presentValue = fv * discountFactor;
+                csvContent += `${year},${discountFactor.toFixed(6)},${presentValue.toFixed(2)}\n`;
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `TVM_DiscountTable_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Reset functions
+        function resetTab(tabName) {
+            switch(tabName) {
+                case 'future-value':
+                    document.getElementById('fv-pv-input').value = document.getElementById('fv-pv-slider').value = 10000;
+                    document.getElementById('fv-rate-input').value = document.getElementById('fv-rate-slider').value = 5;
+                    document.getElementById('fv-years-input').value = document.getElementById('fv-years-slider').value = 10;
+                    document.getElementById('fv-compounding-select').value = 12;
+                    calculator.calculateFutureValue();
+                    break;
+                case 'present-value':
+                    document.getElementById('pv-fv-input').value = document.getElementById('pv-fv-slider').value = 20000;
+                    document.getElementById('pv-rate-input').value = document.getElementById('pv-rate-slider').value = 5;
+                    document.getElementById('pv-years-input').value = document.getElementById('pv-years-slider').value = 10;
+                    document.getElementById('pv-compounding-select').value = 12;
+                    calculator.calculatePresentValue();
+                    break;
+                case 'annuity':
+                    document.getElementById('an-pmt-input').value = document.getElementById('an-pmt-slider').value = 1000;
+                    document.getElementById('an-rate-input').value = document.getElementById('an-rate-slider').value = 5;
+                    document.getElementById('an-years-input').value = document.getElementById('an-years-slider').value = 10;
+                    document.getElementById('an-frequency-select').value = 12;
+                    calculator.calculateAnnuity();
+                    break;
+                case 'perpetuity':
+                    document.getElementById('pp-pmt-input').value = document.getElementById('pp-pmt-slider').value = 1000;
+                    document.getElementById('pp-rate-input').value = document.getElementById('pp-rate-slider').value = 5;
+                    calculator.calculatePerpetuity();
+                    break;
+            }
+        }
+
+        // Initialize calculator
+        let calculator;
+        document.addEventListener('DOMContentLoaded', function() {
+            calculator = new TVMCalculator();
+        });
+    </script>
+</body>
+</html>
